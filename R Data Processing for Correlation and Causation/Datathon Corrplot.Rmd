@@ -1,0 +1,82 @@
+---
+title: "SHADE Corrplot"
+author: "Brendan Soh"
+date: "2022-12-02"
+output:
+  word_document: default
+  html_document: default
+---
+
+## R Markdown
+
+
+```{r Correlation Matrix for Decision Variables}
+library(corrplot)
+library(dplyr)
+library(tidyr)
+library(psych)
+df=read.csv('newcohort_team02_standardized_v3.csv')
+continous_only<- df %>% select(c('prev_iv_fluids', 'prev_vasopressors', 'current_urine_output', 'prev_urine_output', 'current_output_total', 'prev_mbp', 'prev_output_total', 'current_shock_index', 'current_sbp', 'prev_dbp', 'current_sofa_24hours', 'prev_sbp', 'prev_shock_index', 'current_mbp', 'current_heartrate', 'current_temperature', 'current_dbp', 'prev_temperature', 'prev_heartrate', 'current_respiratoryrate', 'current_wbc', 'prev_wbc', 'prev_platelet', 'current_platelet', 'prev_respiratoryrate', 'prev_sofa_24hours', 'current_ptt', 'prev_ptt'))
+M=cor(continous_only)
+write.csv(M,file='corrplot_final.csv')
+corrplot(M,method='color',tl.cex=0.5)
+
+```
+```{r Testing for Independence Amongst Categorical}
+library(knitr)
+quantile(df$current_age,c(0.33,0.67))
+df$agegrp[df$current_age<=0.5731707]<-"1"
+df$agegrp[df$current_age>0.5731707  & df$current_age<=0.7439024 ]<-"2"
+df$agegrp[df$current_age>0.7439024 ]<-"3"
+young<- df%>% filter(df$agegrp=="1")
+mid<- df%>% filter(df$agegrp=="2")
+old<- df%>% filter(df$agegrp=="3")
+
+table1<- young%>% count(current_gender,change_combo)
+table1 <- table1 %>% spread('change_combo','n')
+table2<- mid%>% count(current_gender,change_combo)
+table2 <- table2 %>% spread('change_combo','n')
+table3<- old%>% count(current_gender,change_combo)
+table3 <- table3 %>% spread('change_combo','n')
+
+colnames(table1)<-c("Gender","Action 1","Action 2","Action 3","Action 4","Action 5","Action 6","Action 7","Action 8","Action 9")
+kable(table1)
+
+test_young_gender<-chisq.test(table(young$current_gender,young$change_combo))
+test_mid_gender<-chisq.test(table(mid$current_gender,mid$change_combo))
+test_old_gender<-chisq.test(table(old$current_gender,old$change_combo))
+
+table4<- young%>% count(prev_MV,change_combo)
+table4 <- table4 %>% spread('change_combo','n')
+table5<- mid%>% count(prev_MV,change_combo)
+table5 <- table5 %>% spread('change_combo','n')
+table6<- old%>% count(prev_MV,change_combo)
+table6 <- table6 %>% spread('change_combo','n')
+
+kable(table4)
+kable(table5)
+kable(table6)
+
+test_young_prev_mechvent<-chisq.test(table(young$change_combo,young$prev_MV))
+test_mid_prev_mechvent<-chisq.test(table(mid$change_combo,mid$prev_MV))
+test_old_prev_mechvent<-chisq.test(table(old$change_combo,old$prev_MV))
+
+test_young_current_mechvent<-chisq.test(table(young$change_combo,young$current_MV
+))
+test_mid_current_mechvent<-chisq.test(table(mid$change_combo,mid$current_MV
+))
+test_old_current_mechvent<-chisq.test(table(old$change_combo,old$current_MV
+))
+
+test_young_gender
+test_mid_gender
+test_old_gender
+test_young_prev_mechvent
+test_mid_prev_mechvent
+test_old_prev_mechvent
+
+test_young_current_mechvent
+test_mid_current_mechvent
+test_old_current_mechvent
+```
+
